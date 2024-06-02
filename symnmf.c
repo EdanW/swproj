@@ -1,5 +1,5 @@
 #define PY_SSIZE_T_CLEAN
-#include <Python.h>
+//#include <Python.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,12 +11,14 @@
 #define     ERROR_MSG       "An Error Has Occurred\n"
 
 // todo rewrite prototypes
-double** k_means_actually(double**, int*, int, int, int, int, double);
-int      findClosestCentroid(double*, double**, int, int);
-void     updatePoints(double**, double**, int*, int, int, int);
-int      updateCentroids(double**, int*, double**, int, int, int, double);
+
 double   dist(double*, double*, int);
-void     freeMemory(double**, int*, int, int); //TODO fix for our points array
+void     freeMemory(double**, int);
+int      getDimension(FILE *file);
+int      getN(FILE *file);
+void     parsePoints(double**, int, int, FILE *); //todo 
+double** initialize2DimArray(int, int);
+void     printMatrix(double**, int, int);
 
 int main(int argc, char *argv[])
 {
@@ -26,29 +28,40 @@ int main(int argc, char *argv[])
     double **points; // N points of d dimension
     int n, d, i;
     double **mat;
-    // assumption 2 no need to validate input
+
     goal = argv[1];
     filePath = argv[2];
     FILE *file = fopen(filePath, "r");
     d = getDimension(file);
     n = getN(file);
-    points = malloc(sizeof(double*)*n);
-    if (!points) {
-        printf("%s",ERROR_MSG);
-        fclose(file);
-        return 1;
-    }
-    for (i = 0 ; i < n ; i++) {
-        points[i] = malloc(sizeof(double)*d);
-        if(!points[i]) {
-            freeMemory(points);
-            printf("%s",ERROR_MSG);
-            fclose(file);
-            return 1;
-        }
-    } //todo all above code should go into initializePoints(n, d) function
+    
+    printf("%d  , %d\n", n, d);
+    points = initialize2DimArray(n,d);
 
-    parsePoints(points, n, d);
+    parsePoints(points, n ,d, file); //TODO stopped here, doesnt print after this line!
+
+    printMatrix(points, n, d);
+
+    freeMemory(points, n);
+    fclose(file);
+
+    /*
+    // variables
+    char *goal;
+    char *filePath;
+    double **points; // N points of d dimension
+    int n, d, i;
+    double **mat;
+    // assumption 2 no need to validate input
+
+    goal = argv[1];
+    filePath = argv[2];
+    FILE *file = fopen(filePath, "r");
+    d = getDimension(file);
+    n = getN(file);
+    points = initialize2DimArray(n,d);
+
+    parsePoints(points, n, d, file);
 
     if (strcmp(goal, "sym") == 0) {
         mat = sym(points, n, d);
@@ -62,12 +75,14 @@ int main(int argc, char *argv[])
 
     fclose(file);
     return 0;
+    */
 }
 
 double **sym(double** points, int n, int d) {
     // mat = initialize2DimArray(n, n);
     // assert its not null, if it is call freeMemory
     printf("Goal is sym\n");
+    return NULL;
 }
 
 int getDimension(FILE *file) {
@@ -98,7 +113,7 @@ int getN(FILE *file) {
     }
     rewind (file);
     return lines;
-    // TODO check works
+    // TODO check if input ends in newline or just ends
 }
 
 double dist(double* p1, double* p2, int d){
@@ -112,8 +127,13 @@ double dist(double* p1, double* p2, int d){
     return sqrt(sum);
 }
 
-void freeMemory(double **points, int n, int d){
-    printf("Goal is sym\n");
+void freeMemory(double **points, int n){
+    if (!points) {return;}
+    int i;
+    for (i = 0 ; i < n ; i ++){
+        free(points[i]);
+    }
+    free(points);
 }
 
 double **initialize2DimArray(int n, int d) {
@@ -125,9 +145,30 @@ double **initialize2DimArray(int n, int d) {
     for (i = 0 ; i < n ; i++) {
         arr[i] = malloc(sizeof(double)*d);
         if (arr[i]) {
-            freeMemory(arr);
+            freeMemory(arr,n);
             return NULL;
         }
     }
     return arr;
 } // todo check works & valgrind
+
+void parsePoints(double **points, int n, int d, FILE * file) {
+    int i, j;
+    double curr;
+    for (i = 0 ; i < n ; i ++){
+        for (j = 0 ; j < d ; j++){
+            fscanf(file, "%lf", &curr);
+            points[i][j] = curr;
+        }
+    }
+}
+
+void printMatrix(double **mat, int n, int d) {
+    int i, j;
+    for (i = 0 ; i < n ; i++){
+        for (j = 0 ; j < d-1 ; j++){
+            printf("%.4f,", mat[i][j]);
+        }
+        printf("%.4f\n", mat[i][d-1]);
+    }
+}
