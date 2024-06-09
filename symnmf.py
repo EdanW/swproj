@@ -1,16 +1,19 @@
 # imports
 # import c module named symnmf
 import sys
+import numpy as np
 
 # default values - max iter, eps?
 
 def main():
     argv = sys.argv
-    ## no need to validate, assumption 2
+    # no need to validate, assumption 2
     k = int(argv[1])
     goal = argv[2]
     path = argv[3]
-
+    points = np.genfromtxt(path, delimiter=',')
+    
+    print (points)
 
     # switch case for goal
     match goal: # TODO replace with actual functions
