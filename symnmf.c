@@ -19,7 +19,7 @@ int getN(FILE *file);
 void parsePoints(double **, int, int, FILE *);
 double **initialize2DimArray(int, int);
 void printMatrix(double **, int, int);
-double **sym(double **, int, int);
+double **csym(double **, int, int);
 double **ddg(double **, int, int);
 double **calcDdg(double **, int);
 double sumOfArray(double *, int);
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     char *goal;
     char *filePath;
     double **points; // N points of d dimension
-    int n, d, i;
+    int n, d;
     double **mat;
 
     goal = argv[1];
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 
     if (strcmp(goal, "sym") == 0)
     {
-        mat = sym(points, n, d);
+        mat = csym(points, n, d);
     }
     else if (strcmp(goal, "ddg") == 0)
     {
@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-double **sym(double **points, int n, int d)
+double **csym(double **points, int n, int d)
 {
     double **sym = initialize2DimArray(n, n);
     int i, j;
@@ -93,7 +93,7 @@ double **sym(double **points, int n, int d)
 
 double **ddg(double **points, int n, int d)
 {
-    double **mySym = sym(points, n, d);
+    double **mySym = csym(points, n, d);
     double **ddgRes = calcDdg(mySym, n);
     freeMemory(mySym, n);
     return ddgRes;
@@ -122,7 +122,7 @@ double **norm(double **points, int n, int d)
 {
     int i;
     double **normRes = initialize2DimArray(n, n);
-    double **symMat = sym(points, n, d);
+    double **symMat = csym(points, n, d);
     double **ddgMat = calcDdg(symMat, n);
 
     // calculate ddg^-1/2
@@ -249,10 +249,10 @@ void parsePoints(double **points, int n, int d, FILE *file)
     {
         for (j = 0; j < d; j++)
         {
-            fscanf(file, "%lf", &curr);
+            fscanf_s(file, "%lf", &curr);
             if (j != d - 1)
             {
-                fscanf(file, ",");
+                fscanf_s(file, ",");
             }
             points[i][j] = curr;
         }
