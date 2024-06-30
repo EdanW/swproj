@@ -1,5 +1,5 @@
 # imports
-# import c module named symnmf
+import asdf
 import sys
 import numpy as np
 
@@ -12,14 +12,14 @@ def main():
     k = int(argv[1])
     goal = argv[2]
     path = argv[3]
-    points = np.genfromtxt(path, delimiter=',')
-    
+    points = np.genfromtxt(path, delimiter=',').tolist()
     # switch case for goal
     match goal: # TODO replace with actual functions
         case "symnmf":
             print("symnmf") # c api with symnmf()
         case "sym":
-            print("sym")
+            symMat = np.round(np.array(asdf.sym(points)), decimals=4)
+            print(symMat)
         case "ddg":
             print("ddg")
         case "norm":
@@ -27,16 +27,12 @@ def main():
         case _:
             throwOfficialError()
 
-def symnmf(n, k, w):
+def pysymnmf(n, k, w):
     m = np.mean(w)
     upperBound = 2 * (np.sqrt(m/k))
     h = np.random.uniform(low=0, high=upperBound, size=(n,k))
     # new H = capi.calcSymnf(h)
     # prints new H accordingly
-
-
-
-
 
 
 def throwOfficialError():

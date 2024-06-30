@@ -1,11 +1,10 @@
 #define PY_SSIZE_T_CLEAN
-// #include <Python.h>
+#include <Python.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include "symnmf.h"
-// ^ need help with locally enabling these
 #define ITER_DEFAULT 200
 #define epsilon 0.001
 #define ERROR_MSG "An Error Has Occurred\n"

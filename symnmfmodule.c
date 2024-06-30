@@ -8,15 +8,12 @@ int getNModule(PyObject*);
 
 static PyObject* sym(PyObject *self, PyObject *args){
     int n, d, i, j;
-
     double** points;
     double** symMat;
     PyObject *pypoints;
     PyObject *point;
     PyObject *pysym;
-
     double coordinate;
-
     if(!PyArg_ParseTuple(args, "O", &pypoints)){
         return NULL;
     }
@@ -28,8 +25,6 @@ static PyObject* sym(PyObject *self, PyObject *args){
     n = getNModule(pypoints);
     d = getNModule(PyList_GetItem(pypoints, 0));
 
-
-    // getDModiule
     points = malloc(n * sizeof(double*));
 
     for (i = 0; i < n; i++){ 
@@ -86,7 +81,6 @@ static PyObject* sym(PyObject *self, PyObject *args){
 
 }
 
-
 static PyMethodDef symnmfMethods[] = {
     {"sym",
     (PyCFunction) sym,
@@ -95,17 +89,15 @@ static PyMethodDef symnmfMethods[] = {
     {NULL, NULL, 0, NULL}
 };
 
-
 static struct PyModuleDef symnmfmodule = {
     PyModuleDef_HEAD_INIT,
-    "symnmf",
+    "asdf",
     NULL,
     -1,
     symnmfMethods
 };
 
-
-PyMODINIT_FUNC PyInit_symnmf(void){
+PyMODINIT_FUNC PyInit_asdf(void){
     PyObject *m;
     m = PyModule_Create(&symnmfmodule);
     if (!m){
