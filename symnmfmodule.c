@@ -5,15 +5,14 @@
 
 void freeMemoryModule(double**, int*, double**, int, int);
 int getNModule(PyObject*);
+double **convertPyToC(PyObject*, int, int);
+PyObject *convertCToPy(double**, int, int);
 
 static PyObject* sym(PyObject *self, PyObject *args){
-    int n, d, i, j;
+    int n, d;
     double** points;
     double** symMat;
-    PyObject *pypoints;
-    PyObject *point;
-    PyObject *pysym;
-    double coordinate;
+    PyObject *pypoints, *pysym;
     if(!PyArg_ParseTuple(args, "O", &pypoints)){
         return NULL;
     }
@@ -25,60 +24,13 @@ static PyObject* sym(PyObject *self, PyObject *args){
     n = getNModule(pypoints);
     d = getNModule(PyList_GetItem(pypoints, 0));
 
-    points = malloc(n * sizeof(double*));
-
-    for (i = 0; i < n; i++){ 
-        points[i] = malloc(d * sizeof(double));
-        if (points[i] == NULL){
-            freeMemoryModule(points, NULL, NULL, n, 0);
-            return NULL;
-        }
-    }
-
-    for (i = 0; i < n; i++){ //convert py to c points
-        point = PyList_GetItem(pypoints, i);
-        for (j = 0; j < d; j++){
-            coordinate = PyFloat_AsDouble(PyList_GetItem(point, j));
-            points[i][j] = coordinate;
-        }
-    }
-
+    points = convertPyToC(pypoints, n, d);
     symMat = csym(points, n, d);
-    
-    if (symMat == NULL){
-        freeMemoryModule(points, NULL, NULL, n, 0);
-        return NULL;
-    }
+    pysym = convertCToPy(symMat, n, d);
 
-    pysym = PyList_New(n);
-    if (pysym == NULL) {
-        freeMemoryModule(points, NULL, NULL, n, 0);
-        return NULL;
-    }
-
-    for (i = 0; i < n; i++) { // create pysym matrix
-        PyObject *pysym_row = PyList_New(n);
-        if (pysym_row == NULL) {
-            freeMemoryModule(points, NULL, NULL, n, 0);
-            return NULL;
-        }
-
-        for (j = 0; j < n; j++) {
-            PyObject *value = PyFloat_FromDouble(symMat[i][j]);
-            if (value == NULL) {
-                freeMemoryModule(points, NULL, NULL, n, 0);
-                return NULL;
-            }
-            PyList_SET_ITEM(pysym_row, j, value);
-        }
-
-        PyList_SET_ITEM(pysym, i, pysym_row);
-    }
-
+    freeMemoryModule(symMat, NULL, NULL, n, 0);
     freeMemoryModule(points, NULL, NULL, n, 0);
-
     return pysym;
-
 }
 
 static PyMethodDef symnmfMethods[] = {
@@ -131,4 +83,62 @@ void freeMemoryModule(double** points, int* centroid_indices, double** centroids
 int getNModule (PyObject *pypoints) {
     Py_ssize_t length = PyList_Size(pypoints);
     return PyLong_AsLong(PyLong_FromSsize_t(length));
+}
+
+double** convertPyToC (PyObject* pypoints, int n, int d){
+    double **points;
+    int i,j;
+    double coordinate;
+    PyObject *point;
+    points = malloc(n * sizeof(double*));
+
+    for (i = 0; i < n; i++){ 
+        points[i] = malloc(d * sizeof(double));
+        if (points[i] == NULL){
+            freeMemoryModule(points, NULL, NULL, n, 0);
+            return NULL;
+        }
+    }
+
+    for (i = 0; i < n; i++){ //convert py to c points
+        point = PyList_GetItem(pypoints, i);
+        for (j = 0; j < d; j++){
+            coordinate = PyFloat_AsDouble(PyList_GetItem(point, j));
+            points[i][j] = coordinate;
+        }
+    }
+    return points;
+}
+
+PyObject *convertCToPy(double** symMat, int n, int d) {
+    PyObject* pysym, *pysym_row, *value;
+    int i, j;
+
+    if (symMat == NULL){
+        return NULL;
+    }
+
+    pysym = PyList_New(n);
+    if (pysym == NULL) {
+        return NULL;
+    }
+
+    for (i = 0; i < n; i++) { // create pysym matrix
+        pysym_row = PyList_New(n);
+        if (pysym_row == NULL) {
+            return NULL;
+        }
+
+        for (j = 0; j < n; j++) {
+            value = PyFloat_FromDouble(symMat[i][j]);
+            if (value == NULL) {
+                return NULL;
+            }
+            PyList_SET_ITEM(pysym_row, j, value);
+        }
+
+        PyList_SET_ITEM(pysym, i, pysym_row);
+    }
+
+    return pysym;
 }

@@ -13,12 +13,13 @@ def main():
     goal = argv[2]
     path = argv[3]
     points = np.genfromtxt(path, delimiter=',').tolist()
+    
     # switch case for goal
     match goal: # TODO replace with actual functions
         case "symnmf":
             print("symnmf") # c api with symnmf()
         case "sym":
-            symMat = np.round(np.array(asdf.sym(points)), decimals=4)
+            symMat = np.array(asdf.sym(points))
             print(symMat)
         case "ddg":
             print("ddg")

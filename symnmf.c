@@ -19,7 +19,7 @@ void parsePoints(double **, int, int, FILE *);
 double **initialize2DimArray(int, int);
 void printMatrix(double **, int, int);
 double **csym(double **, int, int);
-double **ddg(double **, int, int);
+double **cddg(double **, int, int);
 double **calcDdg(double **, int);
 double sumOfArray(double *, int);
 double **norm(double **, int, int);
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     }
     else if (strcmp(goal, "ddg") == 0)
     {
-        mat = ddg(points, n, d);
+        mat = cddg(points, n, d);
     }
     else if (strcmp(goal, "norm") == 0)
     {
@@ -90,7 +90,7 @@ double **csym(double **points, int n, int d)
     return sym;
 }
 
-double **ddg(double **points, int n, int d)
+double **cddg(double **points, int n, int d)
 {
     double **mySym = csym(points, n, d);
     double **ddgRes = calcDdg(mySym, n);
