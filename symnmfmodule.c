@@ -3,65 +3,59 @@
 #include <math.h>
 #include "symnmf.h"
 
+#define MAX_ITER = 300
+#define EPS = 0.0001 //1e-4
+
 void freeMemoryModule(double**, int*, double**, int, int);
 int getNModule(PyObject*);
 double **convertPyToC(PyObject*, int, int);
 PyObject *convertCToPy(double**, int, int);
 PyObject *calcByGoal(int, PyObject*);
 
+
 static PyObject* sym(PyObject *self, PyObject *args) {
-    /* int n, d;
-    double** points;
-    double** symMat;
-    PyObject *pypoints, *pysym;
-    if(!PyArg_ParseTuple(args, "O", &pypoints)){
-        return NULL;
-    }
-
-    if (PyObject_Length(pypoints) < 0){
-        return NULL;
-    }
-
-    n = getNModule(pypoints);
-    d = getNModule(PyList_GetItem(pypoints, 0));
-
-    points = convertPyToC(pypoints, n, d);
-    symMat = csym(points, n, d);
-    pysym = convertCToPy(symMat, n, d);
-
-    freeMemoryModule(symMat, NULL, NULL, n, 0);
-    freeMemoryModule(points, NULL, NULL, n, 0);
-    return pysym; */
     return calcByGoal(0, args);
 }
 
 static PyObject* ddg(PyObject *self, PyObject *args) {
-    /* int n, d;
-    double** points;
-    double** ddgMat;
-    PyObject *pypoints, *pysym;
-    if(!PyArg_ParseTuple(args, "O", &pypoints)){
-        return NULL;
-    }
-    if (PyObject_Length(pypoints) < 0){
-        return NULL;
-    }
-
-    n = getNModule(pypoints);
-    d = getNModule(PyList_GetItem(pypoints, 0));
-
-    points = convertPyToC(pypoints, n, d);
-    ddgMat = cddg(points, n, d);
-    pysym = convertCToPy(ddgMat, n, d);
-
-    freeMemoryModule(ddgMat, NULL, NULL, n, 0);
-    freeMemoryModule(points, NULL, NULL, n, 0);
-    return pysym; */
     return calcByGoal(1, args);
 } 
 
 static PyObject* norm(PyObject *self, PyObject *args) {
     return calcByGoal(2, args);
+}
+
+static PyObject* symnmf(PyObject *self, PyObject *args) {
+    // THIS IS JUST A SKELETON FOR NOW AND NEEDS TO BE TESTED
+    // in args there is h and w
+    int n, k, i, j;
+    double beta = 0.5;
+    double** h;
+    double** w;
+    double** h_prior; // a temp variable for the for loop, holding the last h calculated
+    PyObject *pyh, *pyw; // the matrices received
+    
+    if(!PyArg_ParseTuple(args, "OO", &pyh, &pyw)){
+        return NULL;
+    }
+    if (PyObject_Length(pyh) < 0 || PyObject_Length(pyw) < 0){
+        return NULL;
+    }
+
+    // get n of pyh and pyw
+    // get k of pyh
+
+    h = convertPyToC(pyh, n, k);
+    w = convertPyToC(pyw, n, n);
+    
+    for (i = 0 ; i < MAX_ITER ; i++) {
+        h_prior = h; // make sure im not off by one
+        // h = updateH (h_prior) NEED TO IMPLEMENT THIS
+        // if isConverged(h, h_prior)
+            // break and return H?
+    }
+
+    return pyh;
 }
 
 static PyMethodDef symnmfMethods[] = {

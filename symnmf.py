@@ -14,36 +14,39 @@ def main():
     path = argv[3]
     points = np.genfromtxt(path, delimiter=',').tolist()
     
+    resMat = []
     # switch case for goal
     match goal: # TODO replace with actual functions
         # TODO check if returned null and throw error
         case "symnmf":
-            print("symnmf") # c api with symnmf()
+            print("symnmf")
+            w = asdf.norm(points) # should we wrap with np.array?
+            n = 100 # TODO make a GET N func
+            resMat = pysymnmf(n, k, w)
         case "sym":
-            symMat = np.array(asdf.sym(points))
-            print(symMat) # TODO cleanup delete line
+            resMat = np.array(asdf.sym(points))
         case "ddg":
-            ddgMat = np.array(asdf.ddg(points))
-            print(ddgMat)
+            resMat = np.array(asdf.ddg(points))
         case "norm":
-            normMat = np.array(asdf.norm(points))
-            print(normMat)
+            resMat = np.array(asdf.norm(points))
         case _:
             throwOfficialError()
+    
+    #TODO special print resMat
+
 
 def pysymnmf(n, k, w):
     m = np.mean(w)
     upperBound = 2 * (np.sqrt(m/k))
     h = np.random.uniform(low=0, high=upperBound, size=(n,k))
-    # new H = capi.calcSymnf(h)
+    
+    # new H = asdf.calcSymnf(h, w)
     # prints new H accordingly
 
 
 def throwOfficialError():
     print("An Error Has Occurred")
     sys.exit() #TODO how to terminate properly??
-
-
 
 
 if __name__ == "__main__":

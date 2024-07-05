@@ -5,11 +5,9 @@
 #include <string.h>
 #include <math.h>
 #include "symnmf.h"
-#define ITER_DEFAULT 200
+/* #define ITER_DEFAULT 200
 #define epsilon 0.001
-#define ERROR_MSG "An Error Has Occurred\n"
-
-// todo rewrite prototypes
+#define ERROR_MSG "An Error Has Occurred\n" */
 
 double dist(double *, double *, int);
 void freeMemory(double **, int);
@@ -27,7 +25,6 @@ void multiplyMatrices(double **, double **, double **, int, int, int);
 
 int main(int argc, char *argv[])
 {
-    // variables
     char *goal;
     char *filePath;
     double **points; // N points of d dimension
@@ -269,3 +266,4 @@ void printMatrix(double **mat, int n, int d)
         printf("%.4f\n", mat[i][d - 1]);
     }
 }
+
