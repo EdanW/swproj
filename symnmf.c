@@ -71,7 +71,6 @@ double **csym(double **points, int n, int d)
     {
         freeMemory(points, n);
     }
-    printf("Goal is sym\n"); // TODO remove later
     for (i = 0; i < n; i++)
     {
         for (j = 0; j < n; j++)

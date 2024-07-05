@@ -7,9 +7,10 @@ void freeMemoryModule(double**, int*, double**, int, int);
 int getNModule(PyObject*);
 double **convertPyToC(PyObject*, int, int);
 PyObject *convertCToPy(double**, int, int);
+PyObject *calcByGoal(int, PyObject*);
 
-static PyObject* sym(PyObject *self, PyObject *args){
-    int n, d;
+static PyObject* sym(PyObject *self, PyObject *args) {
+    /* int n, d;
     double** points;
     double** symMat;
     PyObject *pypoints, *pysym;
@@ -30,14 +31,46 @@ static PyObject* sym(PyObject *self, PyObject *args){
 
     freeMemoryModule(symMat, NULL, NULL, n, 0);
     freeMemoryModule(points, NULL, NULL, n, 0);
-    return pysym;
+    return pysym; */
+    return calcByGoal(0, args);
 }
+
+static PyObject* ddg(PyObject *self, PyObject *args) {
+    /* int n, d;
+    double** points;
+    double** ddgMat;
+    PyObject *pypoints, *pysym;
+    if(!PyArg_ParseTuple(args, "O", &pypoints)){
+        return NULL;
+    }
+    if (PyObject_Length(pypoints) < 0){
+        return NULL;
+    }
+
+    n = getNModule(pypoints);
+    d = getNModule(PyList_GetItem(pypoints, 0));
+
+    points = convertPyToC(pypoints, n, d);
+    ddgMat = cddg(points, n, d);
+    pysym = convertCToPy(ddgMat, n, d);
+
+    freeMemoryModule(ddgMat, NULL, NULL, n, 0);
+    freeMemoryModule(points, NULL, NULL, n, 0);
+    return pysym; */
+    return calcByGoal(1, args);
+} 
+
+// norm
 
 static PyMethodDef symnmfMethods[] = {
     {"sym",
     (PyCFunction) sym,
     METH_VARARGS,
     PyDoc_STR("sym func")},
+    {"ddg",
+    (PyCFunction) ddg,
+    METH_VARARGS,
+    PyDoc_STR("ddg func")},
     {NULL, NULL, 0, NULL}
 };
 
@@ -139,6 +172,51 @@ PyObject *convertCToPy(double** symMat, int n, int d) {
 
         PyList_SET_ITEM(pysym, i, pysym_row);
     }
+    return pysym;
+}
 
+PyObject *calcByGoal(int func, PyObject *args) {
+    /* cases are:
+    0 - sym
+    1 - ddg
+    2 - norm IMPLEMENT cleanup
+    3 - symnmf IMPLEMENT cleanup */
+
+    int n, d;
+    double** points;
+    double** targetMat;
+    PyObject *pypoints, *pysym;
+    if(!PyArg_ParseTuple(args, "O", &pypoints)){
+        return NULL;
+    }
+    if (PyObject_Length(pypoints) < 0){
+        return NULL;
+    }
+
+    n = getNModule(pypoints);
+    d = getNModule(PyList_GetItem(pypoints, 0));
+
+    points = convertPyToC(pypoints, n, d);
+
+    switch (func) {
+        case 0:
+            targetMat = csym(points, n, d);
+            break;
+        case 1:
+            targetMat = cddg(points, n, d);
+            break;
+        case 2:
+            break;
+        case 3:
+            break;
+        default:
+            printf("INTERNAL ERROR- INVALID FUNC #");
+            break;
+    }
+
+    pysym = convertCToPy(targetMat, n, d);
+
+    freeMemoryModule(targetMat, NULL, NULL, n, 0);
+    freeMemoryModule(points, NULL, NULL, n, 0);
     return pysym;
 }

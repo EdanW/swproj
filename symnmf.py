@@ -16,13 +16,15 @@ def main():
     
     # switch case for goal
     match goal: # TODO replace with actual functions
+        # TODO check if returned null and throw error
         case "symnmf":
             print("symnmf") # c api with symnmf()
         case "sym":
             symMat = np.array(asdf.sym(points))
-            print(symMat)
+            print(symMat) # TODO cleanup delete line
         case "ddg":
-            print("ddg")
+            ddgMat = np.array(asdf.ddg(points))
+            print(ddgMat)
         case "norm":
             print("norm")
         case _:

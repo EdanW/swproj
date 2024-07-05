@@ -2,5 +2,6 @@
 # define SYMNMF_H_
 
 double** csym(double** points, int n, int d);
+double** cddg(double** points, int n, int d);
 // everything else including symnmf
 # endif
