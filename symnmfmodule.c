@@ -60,7 +60,9 @@ static PyObject* ddg(PyObject *self, PyObject *args) {
     return calcByGoal(1, args);
 } 
 
-// norm
+static PyObject* norm(PyObject *self, PyObject *args) {
+    return calcByGoal(2, args);
+}
 
 static PyMethodDef symnmfMethods[] = {
     {"sym",
@@ -71,6 +73,10 @@ static PyMethodDef symnmfMethods[] = {
     (PyCFunction) ddg,
     METH_VARARGS,
     PyDoc_STR("ddg func")},
+    {"norm",
+    (PyCFunction) norm,
+    METH_VARARGS,
+    PyDoc_STR("norm func")},
     {NULL, NULL, 0, NULL}
 };
 
@@ -179,8 +185,7 @@ PyObject *calcByGoal(int func, PyObject *args) {
     /* cases are:
     0 - sym
     1 - ddg
-    2 - norm IMPLEMENT cleanup
-    3 - symnmf IMPLEMENT cleanup */
+    2 - norm */
 
     int n, d;
     double** points;
@@ -197,7 +202,6 @@ PyObject *calcByGoal(int func, PyObject *args) {
     d = getNModule(PyList_GetItem(pypoints, 0));
 
     points = convertPyToC(pypoints, n, d);
-
     switch (func) {
         case 0:
             targetMat = csym(points, n, d);
@@ -206,8 +210,7 @@ PyObject *calcByGoal(int func, PyObject *args) {
             targetMat = cddg(points, n, d);
             break;
         case 2:
-            break;
-        case 3:
+            targetMat = cnorm(points, n, d);
             break;
         default:
             printf("INTERNAL ERROR- INVALID FUNC #");

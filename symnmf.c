@@ -22,7 +22,7 @@ double **csym(double **, int, int);
 double **cddg(double **, int, int);
 double **calcDdg(double **, int);
 double sumOfArray(double *, int);
-double **norm(double **, int, int);
+double **cnorm(double **, int, int);
 void multiplyMatrices(double **, double **, double **, int, int, int);
 
 int main(int argc, char *argv[])
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     }
     else if (strcmp(goal, "norm") == 0)
     {
-        mat = norm(points, n, d);
+        mat = cnorm(points, n, d);
     }
 
     printMatrix(mat, n, n);
@@ -116,7 +116,7 @@ double sumOfArray(double *arr, int n) {
     return sum;
 }
 
-double **norm(double **points, int n, int d)
+double **cnorm(double **points, int n, int d)
 {
     int i;
     double **normRes = initialize2DimArray(n, n);

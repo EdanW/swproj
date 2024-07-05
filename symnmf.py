@@ -26,7 +26,8 @@ def main():
             ddgMat = np.array(asdf.ddg(points))
             print(ddgMat)
         case "norm":
-            print("norm")
+            normMat = np.array(asdf.norm(points))
+            print(normMat)
         case _:
             throwOfficialError()
 
