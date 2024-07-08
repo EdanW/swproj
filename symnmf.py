@@ -22,7 +22,8 @@ def main():
             print("symnmf")
             w = asdf.norm(points) # should we wrap with np.array?
             n = 100 # TODO make a GET N func
-            resMat = pysymnmf(n, k, w)
+            resMat = pysymnmf(n, k, w) # add n, k
+            print(resMat)
         case "sym":
             resMat = np.array(asdf.sym(points))
         case "ddg":
@@ -31,17 +32,15 @@ def main():
             resMat = np.array(asdf.norm(points))
         case _:
             throwOfficialError()
-    
-    #TODO special print resMat
+    print (resMat) #TODO special print resMat
 
 
 def pysymnmf(n, k, w):
     m = np.mean(w)
     upperBound = 2 * (np.sqrt(m/k))
     h = np.random.uniform(low=0, high=upperBound, size=(n,k))
-    
-    # new H = asdf.calcSymnf(h, w)
-    # prints new H accordingly
+    H = asdf.symnmf(h, w, n, k)
+    return H
 
 
 def throwOfficialError():
