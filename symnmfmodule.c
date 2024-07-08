@@ -6,19 +6,19 @@
 #define MAX_ITER 300
 #define EPS 0.0001
 
-void freeMemoryModule(double**, int*, double**, int, int);
-int getNModule(PyObject*);
-double **convertPyToC(PyObject*, int, int);
-PyObject *convertCToPy(double**, int, int);
-PyObject *calcByGoal(int, PyObject*);
-void updateH(double**, double**, double**, int, int, double**);
-double calcUpdateHEntry( double**, double**, int, int, int, int, double**);
-double innerProduct(double**, double**, int, int, int);
-double efficientCalcHHTHIJ(double**, int, int, int, int, double**);
-int isConverged(double**, double**, int, int);
-void matrixCopy(double**, double**, int, int);
+void      freeMemoryModule(double**, int, double**, int, double**, int, double**, int);
+int       getNModule(PyObject*);
+double**  convertPyToC(PyObject*, int, int);
+PyObject* convertCToPy(double**, int, int);
+PyObject* calcByGoal(int, PyObject*);
+void      updateH(double**, double**, double**, int, int, double**);
+double    calcUpdateHEntry( double**, double**, int, int, int, int, double**);
+double    innerProduct(double**, double**, int, int, int);
+double    efficientCalcHHTHIJ(double**, int, int, int, int, double**);
+int       isConverged(double**, double**, int, int);
+void      matrixCopy(double**, double**, int, int);
 
-// TODO validate the uses of sizeof(h) - will it return the length of array or just the size of pointer?
+// TODO assert that everything that returns from PyToC, CToPy or initialize2DimArray (in symnmf.c too) is not NULL
 
 static PyObject* sym(PyObject *self, PyObject *args) {
     return calcByGoal(0, args);
@@ -30,6 +30,50 @@ static PyObject* ddg(PyObject *self, PyObject *args) {
 
 static PyObject* norm(PyObject *self, PyObject *args) {
     return calcByGoal(2, args);
+}
+
+static PyObject* symnmf(PyObject *self, PyObject *args) {
+    // in python args there is h, w, n, k
+    int n, k, i;
+    double** h;
+    double** w;
+    double** h_prior; // a temp variable for the for loop, holding the last h calculated
+    double** resRow; // a temp variable for efficiently calculate matrices multiplications
+    PyObject *pyh, *pyw, *pyret; // the matrices received
+    
+    if(!PyArg_ParseTuple(args, "OOii", &pyh, &pyw, &n, &k)){
+        return NULL;
+    }
+    if (PyObject_Length(pyh) < 0 || PyObject_Length(pyw) < 0){
+        return NULL;
+    }
+
+    h = convertPyToC(pyh, n, k);
+    w = convertPyToC(pyw, n, n);
+    h_prior = initialize2DimArray(n,k);
+    resRow = initialize2DimArray(1, n);
+
+    if (h == NULL || w == NULL || h_prior == NULL || resRow == NULL){
+        freeMemoryModule(h, n, w, n, h_prior, n, resRow, 1);
+        return NULL;
+    }
+
+    for (i = 0 ; i < MAX_ITER ; i++) {
+        
+        matrixCopy(h, h_prior, n, k);
+        updateH(h, h_prior, w, n, k, resRow);
+
+        if (isConverged(h, h_prior, n, k)) { 
+            break;
+        }
+    }
+
+    // h is optimized, convert to py
+    pyret = convertCToPy(h, n, k);
+    
+    freeMemoryModule(h, n, w, n, h_prior, n, resRow, 1);
+    
+    return pyret;
 }
 
 static PyMethodDef symnmfMethods[] = {
@@ -45,18 +89,22 @@ static PyMethodDef symnmfMethods[] = {
     (PyCFunction) norm,
     METH_VARARGS,
     PyDoc_STR("norm func")},
+    {"symnmf",
+    (PyCFunction) symnmf,
+    METH_VARARGS,
+    PyDoc_STR("symnmf func")},
     {NULL, NULL, 0, NULL}
 };
 
 static struct PyModuleDef symnmfmodule = {
     PyModuleDef_HEAD_INIT,
-    "asdf",
+    "symnmf",
     NULL,
     -1,
     symnmfMethods
 };
 
-PyMODINIT_FUNC PyInit_asdf(void){
+PyMODINIT_FUNC PyInit_symnmf(void){
     PyObject *m;
     m = PyModule_Create(&symnmfmodule);
     if (!m){
@@ -65,26 +113,36 @@ PyMODINIT_FUNC PyInit_asdf(void){
     return m;
 }
 
-void freeMemoryModule(double** points, int* centroid_indices, double** centroids, int n, int k){
-    /*
+void freeMemoryModule(double** mat1, int dim1, double** mat2, int dim2, double** mat3, int dim3, double** mat4, int dim4){
     int i;
 
-    if (points != NULL){
-        for (i = 0; i < n; i++){
-            free(points[i]);
+    if (mat1){
+        for (i = 0; i < dim1; i++){
+            free(mat1[i]);
         }
-        free(points);
+        free(mat1);
     }
 
-    free(centroid_indices);
-
-    if (centroids != NULL){
-        for (i = 0; i < k; i++){
-            free(centroids[i]);
+    if (mat2){
+        for (i = 0; i < dim2; i++){
+            free(mat2[i]);
         }
-        free(centroids);
+        free(mat2);
     }
-    */
+
+    if (mat3){
+        for (i = 0; i < dim3; i++){
+            free(mat3[i]);
+        }
+        free(mat3);
+    }
+
+    if (mat4){
+        for (i = 0; i < dim4; i++){
+            free(mat4[i]);
+        }
+        free(mat4);
+    }
 }
 
 int getNModule (PyObject *pypoints) {
@@ -97,16 +155,13 @@ double** convertPyToC (PyObject* pypoints, int n, int d){
     int i,j;
     double coordinate;
     PyObject *point;
-    points = malloc(n * sizeof(double*));
 
-    for (i = 0; i < n; i++){ 
-        points[i] = malloc(d * sizeof(double));
-        if (points[i] == NULL){
-            freeMemoryModule(points, NULL, NULL, n, 0);
-            return NULL;
-        }
+    points = initialize2DimArray(n, d);
+
+    if (!points){
+        return NULL;
     }
-
+    
     for (i = 0; i < n; i++){ //convert py to c points
         point = PyList_GetItem(pypoints, i);
         for (j = 0; j < d; j++){
@@ -170,6 +225,11 @@ PyObject *calcByGoal(int func, PyObject *args) {
     d = getNModule(PyList_GetItem(pypoints, 0));
 
     points = convertPyToC(pypoints, n, d);
+
+    if (!points){
+        return NULL;
+    }
+
     switch (func) {
         case 0:
             targetMat = csym(points, n, d);
@@ -187,53 +247,9 @@ PyObject *calcByGoal(int func, PyObject *args) {
 
     pysym = convertCToPy(targetMat, n, d);
 
-    freeMemoryModule(targetMat, NULL, NULL, n, 0);
-    freeMemoryModule(points, NULL, NULL, n, 0);
-    return pysym;
-}
-
-static PyObject* symnmf_func(PyObject *self, PyObject *args) {
-    // in python args there is h and w
-    int n, k, i;
-    double** h;
-    double** w;
-    double** h_prior; // a temp variable for the for loop, holding the last h calculated
-    PyObject *pyh, *pyw, *pyret; // the matrices received
+    freeMemoryModule(points, n, targetMat, n, NULL, 0, NULL, 0);
     
-    if(!PyArg_ParseTuple(args, "OOii", &pyh, &pyw, &n, &k)){
-        return NULL;
-    }
-    if (PyObject_Length(pyh) < 0 || PyObject_Length(pyw) < 0){
-        return NULL;
-    }
-
-    h = convertPyToC(pyh, n, k);
-    w = convertPyToC(pyw, n, n);
-
-    h_prior = initialize2DimArray(n,k);
-    if (h_prior == NULL) {
-        freeMemoryModule(NULL, NULL, NULL, 0, 0);
-        return NULL;
-    }
-
-    double **resRow = initialize2DimArray(1, n);
-    if (resRow == NULL) {
-        freeMemoryModule(NULL, NULL, NULL, 0, 0);
-        return NULL;
-    }
-
-    for (i = 0 ; i < MAX_ITER ; i++) {
-        matrixCopy(h, h_prior, n, k);
-        updateH(h, h_prior, w, n, k, resRow);
-        if (isConverged(h, h_prior, n, k)) { 
-            break;
-        }
-    }
-
-    // h is optimized, convert to py
-    // SOMETHING HERE IS NOT WORKING
-    pyret = convertCToPy(h, n, k);
-    return pyret;
+    return pysym;
 }
 
 void updateH(double** h, double** h_prior, double** w, int n, int k, double** resRow) {
@@ -242,8 +258,8 @@ void updateH(double** h, double** h_prior, double** w, int n, int k, double** re
 
     for (i = 0 ; i < n ; i++) {
         for (j = 0 ; j < k ; j++) {
+            // TODO can optimize, we calc resRow again for every i,j, even though it's the same for the same i 
             h[i][j] = calcUpdateHEntry(h_prior, w, i, j, n, k, resRow);
-
         }
     }
 }
@@ -251,7 +267,7 @@ void updateH(double** h, double** h_prior, double** w, int n, int k, double** re
 double calcUpdateHEntry( double** h_prior, double** w, int i, int j, int n, int k, double** resRow) {
     double beta = 0.5;
     double hij = h_prior[i][j];
-    double whij = innerProduct(w, h_prior, i, j, sizeof(w));
+    double whij = innerProduct(w, h_prior, i, j, n);
     double hhthij = efficientCalcHHTHIJ(h_prior, i, j, n, k, resRow);
 
     return (hij * (1 - beta + (beta * (whij / hhthij))));
@@ -272,13 +288,13 @@ double efficientCalcHHTHIJ(double** h, int i, int j, int n, int k, double** resR
 
     for (m = 0 ; m < n ; m++) {
         for (t = 0 ; t < k ; t++) { // run over common dimension
-            sum += h[m][t] * h[t][m]; // inner product of transpose
+            sum += h[i][t] * h[m][t]; // inner product of transpose
         }
-        resRow[1][m] = sum;
+        resRow[0][m] = sum;
         sum = 0;
     }
     // this is equivalent to (h * h^t)*h [i][j]
-    return innerProduct(resRow, h, 1, j, n);
+    return innerProduct(resRow, h, 0, j, n);
 }
 
 int isConverged(double** h, double** h_prior, int n, int k) {

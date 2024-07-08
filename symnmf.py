@@ -1,5 +1,5 @@
 # imports
-import asdf
+import symnmf
 import sys
 import numpy as np
 
@@ -20,16 +20,16 @@ def main():
         # TODO check if returned null and throw error
         case "symnmf":
             print("symnmf")
-            w = asdf.norm(points) # should we wrap with np.array?
-            n = 100 # TODO make a GET N func
+            w = symnmf.norm(points) # should we wrap with np.array?
+            n = len(points) # TODO make a GET N func
             resMat = pysymnmf(n, k, w) # add n, k
             print(resMat)
         case "sym":
-            resMat = np.array(asdf.sym(points))
+            resMat = np.array(symnmf.sym(points))
         case "ddg":
-            resMat = np.array(asdf.ddg(points))
+            resMat = np.array(symnmf.ddg(points))
         case "norm":
-            resMat = np.array(asdf.norm(points))
+            resMat = np.array(symnmf.norm(points))
         case _:
             throwOfficialError()
     print (resMat) #TODO special print resMat
@@ -38,8 +38,8 @@ def main():
 def pysymnmf(n, k, w):
     m = np.mean(w)
     upperBound = 2 * (np.sqrt(m/k))
-    h = np.random.uniform(low=0, high=upperBound, size=(n,k))
-    H = asdf.symnmf(h, w, n, k)
+    h = np.random.uniform(low=0, high=upperBound, size=(n,k)).tolist()
+    H = np.array(symnmf.symnmf(h, w, n, k))
     return H
 
 
