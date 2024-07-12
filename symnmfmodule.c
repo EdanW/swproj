@@ -18,8 +18,6 @@ double    efficientCalcHHTHIJ(double**, int, int, int, int, double**);
 int       isConverged(double**, double**, int, int);
 void      matrixCopy(double**, double**, int, int);
 
-// TODO assert that everything that returns from PyToC, CToPy or initialize2DimArray (in symnmf.c too) is not NULL
-
 static PyObject* sym(PyObject *self, PyObject *args) {
     return calcByGoal(0, args);
 }
@@ -33,13 +31,13 @@ static PyObject* norm(PyObject *self, PyObject *args) {
 }
 
 static PyObject* symnmf(PyObject *self, PyObject *args) {
-    // python args are: h, w, n, k
+    /* python args are: h, w, n, k */
     int n, k, i;
     double** h;
     double** w;
-    double** h_prior; // a temp variable for the for loop, holding the last h calculated
-    double** resRow; // a temp variable for efficiently calculate matrices multiplications
-    PyObject *pyh, *pyw, *pyres; // the matrices received
+    double** h_prior; /* a temp variable for the for loop, holding the last h calculated */
+    double** resRow; /* a temp variable for efficiently calculate matrices multiplications */
+    PyObject *pyh, *pyw, *pyres; /* the matrices received */
     
     if(!PyArg_ParseTuple(args, "OOii", &pyh, &pyw, &n, &k)){
         return NULL;
@@ -67,9 +65,9 @@ static PyObject* symnmf(PyObject *self, PyObject *args) {
         }
     }
 
-    // h is optimized, convert to py
+    /* h is optimized, convert to py */
 
-    pyres = convertCToPy(h, n, k);
+    pyres = convertCToPy(h, n, k); /* if it's null, either way we will free memory and return null */
     freeMemoryModule(h, n, w, n, h_prior, n, resRow, 1);
     
     return pyres;
@@ -161,7 +159,7 @@ double** convertPyToC (PyObject* pypoints, int n, int d){
         return NULL;
     }
     
-    for (i = 0; i < n; i++){ //convert py to c points
+    for (i = 0; i < n; i++){ /* conversion of python type points to c type */
         point = PyList_GetItem(pypoints, i);
         for (j = 0; j < d; j++){
             coordinate = PyFloat_AsDouble(PyList_GetItem(point, j));
@@ -171,38 +169,38 @@ double** convertPyToC (PyObject* pypoints, int n, int d){
     return points;
 }
 
-PyObject *convertCToPy(double** symMat, int n, int d) {
-    PyObject* pysym;
-    PyObject* pysym_row;
+PyObject *convertCToPy(double** cMat, int n, int d) {
+    PyObject* pyMat;
+    PyObject* pyMat_row;
     PyObject* value;
     int i, j;
 
-    if (symMat == NULL){
+    if (cMat == NULL){
         return NULL;
     }
 
-    pysym = PyList_New(n);
-    if (pysym == NULL) {
+    pyMat = PyList_New(n);
+    if (pyMat == NULL) {
         return NULL;
     }
 
-    for (i = 0; i < n; i++) { // create pysym matrix
-        pysym_row = PyList_New(d);
-        if (pysym_row == NULL) {
+    for (i = 0; i < n; i++) {
+        pyMat_row = PyList_New(d);
+        if (pyMat_row == NULL) {
             return NULL;
         }
 
         for (j = 0; j < d; j++) {
-            value = PyFloat_FromDouble(symMat[i][j]);
+            value = PyFloat_FromDouble(cMat[i][j]);
             if (value == NULL) {
                 return NULL;
             }
-            PyList_SET_ITEM(pysym_row, j, value);
+            PyList_SET_ITEM(pyMat_row, j, value);
         }
 
-        PyList_SET_ITEM(pysym, i, pysym_row);
+        PyList_SET_ITEM(pyMat, i, pyMat_row);
     }
-    return pysym;
+    return pyMat;
 }
 
 PyObject *calcByGoal(int func, PyObject *args) {
@@ -254,12 +252,11 @@ PyObject *calcByGoal(int func, PyObject *args) {
 }
 
 void updateH(double** h, double** h_prior, double** w, int n, int k, double** resRow) {
-    // receives identical matrices but h changes inplace
+    /* receives identical matrices but function changes h inplace */
     int i, j;
 
     for (i = 0 ; i < n ; i++) {
         for (j = 0 ; j < k ; j++) {
-            // TODO can optimize, we calc resRow again for every i,j, even though it's the same for the same i 
             h[i][j] = calcUpdateHEntry(h_prior, w, i, j, n, k, resRow);
         }
     }
@@ -288,23 +285,23 @@ double efficientCalcHHTHIJ(double** h, int i, int j, int n, int k, double** resR
     int m, t;
 
     for (m = 0 ; m < n ; m++) {
-        for (t = 0 ; t < k ; t++) { // run over common dimension
-            sum += h[i][t] * h[m][t]; // inner product of transpose
+        for (t = 0 ; t < k ; t++) { /* run over common dimension */
+            sum += h[i][t] * h[m][t]; /* inner product of transpose */
         }
         resRow[0][m] = sum;
         sum = 0;
     }
-    // this is equivalent to (h * h^t)*h [i][j]
+    /* this is equivalent to (h * h^t)*h [i][j] */
     return innerProduct(resRow, h, 0, j, n);
 }
 
 int isConverged(double** h, double** h_prior, int n, int k) {
-    // 1 on convergance, 0 else
+    /* 1 on convergance, 0 else */
     int i,j;
     double frobBeforeSqrt = 0;
     for (i = 0 ; i < n ; i++) {
         for (j = 0 ; j < k ; j++) {
-            frobBeforeSqrt += pow(fabs(h[i][j] - h_prior[i][j]), 2); // according to wiki
+            frobBeforeSqrt += pow(fabs(h[i][j] - h_prior[i][j]), 2);
         }
     }
     if (sqrt(frobBeforeSqrt) < EPS) { 

@@ -15,9 +15,8 @@ def main():
     resMat = []
     # switch case for goal
     match goal:
-        # TODO check if returned null and throw error
         case "symnmf":
-            w = symnmf.norm(points) # should we wrap with np.array?
+            w = symnmf.norm(points)
             n = len(points)
             resMat = pysymnmf(n, k, w)
         case "sym":
@@ -28,6 +27,7 @@ def main():
             resMat = np.array(symnmf.norm(points))
         case _:
             throwOfficialError()
+    
     if resMat is None:
         throwOfficialError()
     officialPrint(resMat)
@@ -43,14 +43,12 @@ def pysymnmf(n, k, w):
 def officialPrint(mat):
     # Convert the numpy array to a list of strings
     rows_as_strings = [','.join(f"{x:.4f}" for x in row) for row in mat]
-    # Join the rows with newline characters
     csv_string = '\n'.join(rows_as_strings)
-    # Print the resulting string
     print(csv_string)
 
 def throwOfficialError():
     print("An Error Has Occurred")
-    sys.exit() #TODO how to terminate properly??
+    sys.exit(1)
 
 
 if __name__ == "__main__":
