@@ -3,8 +3,6 @@ import symnmf
 import sys
 import numpy as np
 
-# default values - max iter, eps?
-
 def main():
     np.random.seed(0)
     argv = sys.argv
@@ -16,7 +14,7 @@ def main():
     
     resMat = []
     # switch case for goal
-    match goal: # TODO replace with actual functions
+    match goal:
         # TODO check if returned null and throw error
         case "symnmf":
             w = symnmf.norm(points) # should we wrap with np.array?
@@ -30,6 +28,8 @@ def main():
             resMat = np.array(symnmf.norm(points))
         case _:
             throwOfficialError()
+    if resMat is None:
+        throwOfficialError()
     officialPrint(resMat)
 
 
@@ -42,7 +42,7 @@ def pysymnmf(n, k, w):
 
 def officialPrint(mat):
     # Convert the numpy array to a list of strings
-    rows_as_strings = [', '.join(f"{x:.4f}" for x in row) for row in mat]
+    rows_as_strings = [','.join(f"{x:.4f}" for x in row) for row in mat]
     # Join the rows with newline characters
     csv_string = '\n'.join(rows_as_strings)
     # Print the resulting string
