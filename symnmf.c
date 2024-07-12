@@ -1,13 +1,9 @@
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include "symnmf.h"
-/* #define ITER_DEFAULT 200
-#define epsilon 0.001
-#define ERROR_MSG "An Error Has Occurred\n" */
+
 
 double dist(double *, double *, int);
 void freeMemory(double **, int);
@@ -94,7 +90,7 @@ double **cddg(double **points, int n, int d)
     return ddgRes;
 }
 
-double **calcDdg(double **sym, int n){
+double **calcDdg(double **sym, int n) {
     double **ddg = initialize2DimArray(n, n);
     int i;
     for (i = 0; i < n; i++)
@@ -113,8 +109,7 @@ double sumOfArray(double *arr, int n) {
     return sum;
 }
 
-double **cnorm(double **points, int n, int d)
-{
+double **cnorm(double **points, int n, int d) {
     int i;
     double **normRes = initialize2DimArray(n, n);
     double **symMat = csym(points, n, d);
@@ -244,10 +239,10 @@ void parsePoints(double **points, int n, int d, FILE *file)
     {
         for (j = 0; j < d; j++)
         {
-            fscanf_s(file, "%lf", &curr);
+            fscanf(file, "%lf", &curr);
             if (j != d - 1)
             {
-                fscanf_s(file, ",");
+                fscanf(file, ",");
             }
             points[i][j] = curr;
         }

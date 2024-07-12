@@ -19,11 +19,9 @@ def main():
     match goal: # TODO replace with actual functions
         # TODO check if returned null and throw error
         case "symnmf":
-            print("symnmf")
             w = symnmf.norm(points) # should we wrap with np.array?
-            n = len(points) # TODO make a GET N func
-            resMat = pysymnmf(n, k, w) # add n, k
-            print(resMat)
+            n = len(points)
+            resMat = pysymnmf(n, k, w)
         case "sym":
             resMat = np.array(symnmf.sym(points))
         case "ddg":
@@ -32,16 +30,23 @@ def main():
             resMat = np.array(symnmf.norm(points))
         case _:
             throwOfficialError()
-    print (resMat) #TODO special print resMat
+    officialPrint(resMat)
 
 
 def pysymnmf(n, k, w):
     m = np.mean(w)
     upperBound = 2 * (np.sqrt(m/k))
     h = np.random.uniform(low=0, high=upperBound, size=(n,k)).tolist()
-    H = np.array(symnmf.symnmf(h, w, n, k))
+    H = symnmf.symnmf(h, w, n, k)
     return H
 
+def officialPrint(mat):
+    # Convert the numpy array to a list of strings
+    rows_as_strings = [', '.join(f"{x:.4f}" for x in row) for row in mat]
+    # Join the rows with newline characters
+    csv_string = '\n'.join(rows_as_strings)
+    # Print the resulting string
+    print(csv_string)
 
 def throwOfficialError():
     print("An Error Has Occurred")

@@ -8,6 +8,7 @@
         "type_traits": "c",
         "utility": "c",
         "math.h": "c",
-        "symnmf.h": "c"
+        "symnmf.h": "c",
+        "stdio.h": "c"
     }
 }

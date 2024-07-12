@@ -4,6 +4,6 @@
 double** csym(double** points, int n, int d);
 double** cddg(double** points, int n, int d);
 double** cnorm(double** points, int n, int d);
-double **initialize2DimArray(int n, int d);
+double** initialize2DimArray(int n, int d);
 
 # endif

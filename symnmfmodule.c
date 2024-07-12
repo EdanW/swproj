@@ -33,13 +33,13 @@ static PyObject* norm(PyObject *self, PyObject *args) {
 }
 
 static PyObject* symnmf(PyObject *self, PyObject *args) {
-    // in python args there is h, w, n, k
+    // python args are: h, w, n, k
     int n, k, i;
     double** h;
     double** w;
     double** h_prior; // a temp variable for the for loop, holding the last h calculated
     double** resRow; // a temp variable for efficiently calculate matrices multiplications
-    PyObject *pyh, *pyw, *pyret; // the matrices received
+    PyObject *pyh, *pyw, *pyres; // the matrices received
     
     if(!PyArg_ParseTuple(args, "OOii", &pyh, &pyw, &n, &k)){
         return NULL;
@@ -59,21 +59,20 @@ static PyObject* symnmf(PyObject *self, PyObject *args) {
     }
 
     for (i = 0 ; i < MAX_ITER ; i++) {
-        
+    
         matrixCopy(h, h_prior, n, k);
         updateH(h, h_prior, w, n, k, resRow);
-
         if (isConverged(h, h_prior, n, k)) { 
             break;
         }
     }
 
     // h is optimized, convert to py
-    pyret = convertCToPy(h, n, k);
-    
+
+    pyres = convertCToPy(h, n, k);
     freeMemoryModule(h, n, w, n, h_prior, n, resRow, 1);
     
-    return pyret;
+    return pyres;
 }
 
 static PyMethodDef symnmfMethods[] = {
@@ -173,7 +172,9 @@ double** convertPyToC (PyObject* pypoints, int n, int d){
 }
 
 PyObject *convertCToPy(double** symMat, int n, int d) {
-    PyObject* pysym, *pysym_row, *value;
+    PyObject* pysym;
+    PyObject* pysym_row;
+    PyObject* value;
     int i, j;
 
     if (symMat == NULL){
@@ -186,12 +187,12 @@ PyObject *convertCToPy(double** symMat, int n, int d) {
     }
 
     for (i = 0; i < n; i++) { // create pysym matrix
-        pysym_row = PyList_New(n);
+        pysym_row = PyList_New(d);
         if (pysym_row == NULL) {
             return NULL;
         }
 
-        for (j = 0; j < n; j++) {
+        for (j = 0; j < d; j++) {
             value = PyFloat_FromDouble(symMat[i][j]);
             if (value == NULL) {
                 return NULL;
@@ -213,7 +214,7 @@ PyObject *calcByGoal(int func, PyObject *args) {
     int n, d;
     double** points;
     double** targetMat;
-    PyObject *pypoints, *pysym;
+    PyObject *pypoints, *pyres;
     if(!PyArg_ParseTuple(args, "O", &pypoints)){
         return NULL;
     }
@@ -241,15 +242,15 @@ PyObject *calcByGoal(int func, PyObject *args) {
             targetMat = cnorm(points, n, d);
             break;
         default:
-            printf("INTERNAL ERROR- INVALID FUNC #"); //TODO remove or change before submit
+            printf("INTERNAL ERROR- INVALID FUNC #");
             break;
     }
 
-    pysym = convertCToPy(targetMat, n, d);
+    pyres = convertCToPy(targetMat, n, n);
 
     freeMemoryModule(points, n, targetMat, n, NULL, 0, NULL, 0);
     
-    return pysym;
+    return pyres;
 }
 
 void updateH(double** h, double** h_prior, double** w, int n, int k, double** resRow) {
@@ -319,4 +320,5 @@ void matrixCopy(double** src, double** tgt, int n, int k) {
         }
     }
 }
+
 
