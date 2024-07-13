@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
     char *filePath;
     double **points; /* N points of d dimension */
     int n, d;
-    double **mat;
+    double **mat = NULL;
     FILE *file;
 
     goal = argv[1];
@@ -66,6 +66,7 @@ int main(int argc, char *argv[]) {
     } else {
         throwOfficialError();
     }
+    freeMemory(mat, n);
     return 0;
 }
 
@@ -240,17 +241,18 @@ double **initialize2DimArray(int n, int d) {
 }
 
 void parsePoints(double **points, int n, int d, FILE *file) {
-    int i, j;
+    int i, j, fscanf_res;
     double curr;
     for (i = 0; i < n; i++)
     {
         for (j = 0; j < d; j++)
         {
-            fscanf(file, "%lf", &curr);
-            if (j != d - 1)
+            fscanf_res = fscanf(file, "%lf", &curr);
+            if (j != (d - 1))
             {
-                fscanf(file, ",");
+                fscanf_res = fscanf(file, ",");
             }
+            if (fscanf_res) {} /* this is for getting rid of compiler errors */
             points[i][j] = curr;
         }
     }

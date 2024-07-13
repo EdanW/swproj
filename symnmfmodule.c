@@ -211,7 +211,7 @@ PyObject *calcByGoal(int func, PyObject *args) {
 
     int n, d;
     double** points;
-    double** targetMat;
+    double** targetMat = NULL;
     PyObject *pypoints, *pyres;
     if(!PyArg_ParseTuple(args, "O", &pypoints)){
         return NULL;

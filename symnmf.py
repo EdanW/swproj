@@ -14,19 +14,20 @@ def main():
     
     resMat = []
     # switch case for goal
-    match goal:
-        case "symnmf":
-            w = symnmf.norm(points)
-            n = len(points)
-            resMat = pysymnmf(n, k, w)
-        case "sym":
-            resMat = np.array(symnmf.sym(points))
-        case "ddg":
-            resMat = np.array(symnmf.ddg(points))
-        case "norm":
-            resMat = np.array(symnmf.norm(points))
-        case _:
-            throwOfficialError()
+    # note: match-case is not supported in nova version of python
+    if goal == "symnmf":
+        w = symnmf.norm(points)
+        n = len(points)
+        resMat = pysymnmf(n, k, w)
+    elif goal == "sym":
+        resMat = np.array(symnmf.sym(points))
+    elif goal == "ddg":
+        resMat = np.array(symnmf.ddg(points))
+    elif goal == "norm":
+        resMat = np.array(symnmf.norm(points))
+    else:
+        throwOfficialError()
+
     
     if resMat is None:
         throwOfficialError()
