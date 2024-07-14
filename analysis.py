@@ -16,19 +16,17 @@ def main():
 
     try:
         points = np.genfromtxt(path, delimiter=',').tolist()
-        H = analSymnmf(points, len(points), k)
+        H = np.array(analSymnmf(points, len(points), k))
         
 
         # label of a point = which cluster it belongs to.
-        symnmf_clusters = np.argmax(H, axis=1)
+        symnmf_clusters = H.argmax(axis=1)
         kmeans_centroids = analKmeans(points, k)
         kmeans_clusters = [find_closest_centroid(point, kmeans_centroids) for point in points]
 
         symnmf_score = sk.silhouette_score(points, symnmf_clusters)
         kmeans_score = sk.silhouette_score(points, kmeans_clusters)
 
-        print(kmeans_clusters)
-        print(symnmf_clusters)
         print("nmf: {:.4f}".format(symnmf_score))
         print("kmeans: {:.4f}".format(kmeans_score))
 
