@@ -11,24 +11,24 @@ def main():
     if len(sys.argv) != 3:
         throwOfficialError()
     
-    k = sys.argv[1]
+    k = int(sys.argv[1])
     path = sys.argv[2]
 
     try:
         points = np.genfromtxt(path, delimiter=',').tolist()
         H = analSymnmf(points, len(points), k)
         
+
         # label of a point = which cluster it belongs to.
-        # need to go over H and generate the labels :
+        symnmf_clusters = np.argmax(H, axis=1)
+        kmeans_centroids = analKmeans(points, k)
+        kmeans_clusters = [find_closest_centroid(point, kmeans_centroids) for point in points]
 
-        # symnmf_clusters = xxx
-        # kmeans_clusters = xxx
+        symnmf_score = sk.silhouette_score(points, symnmf_clusters)
+        kmeans_score = sk.silhouette_score(points, kmeans_clusters)
 
-        symnmf_score = 0 # temp, delete after
-        kmeans_score = 0
-        # symnmf_score = sk.silhouette_score(points, symnmf_clusters)
-        # kmeans_score = same as above with kmeans
-
+        print(kmeans_clusters)
+        print(symnmf_clusters)
         print("nmf: {:.4f}".format(symnmf_score))
         print("kmeans: {:.4f}".format(kmeans_score))
 
@@ -69,7 +69,7 @@ def analKmeans(points, k):
         if converged:
             break
     
-    return centroids # TODO what should we return
+    return centroids
 
 
 def throwOfficialError():

@@ -298,13 +298,13 @@ double efficientCalcHHTHIJ(double** h, int i, int j, int n, int k, double** resR
 int isConverged(double** h, double** h_prior, int n, int k) {
     /* 1 on convergance, 0 else */
     int i,j;
-    double frobBeforeSqrt = 0;
+    double frobSquared = 0;
     for (i = 0 ; i < n ; i++) {
         for (j = 0 ; j < k ; j++) {
-            frobBeforeSqrt += pow(fabs(h[i][j] - h_prior[i][j]), 2);
+            frobSquared += pow(fabs(h[i][j] - h_prior[i][j]), 2);
         }
     }
-    if (sqrt(frobBeforeSqrt) < EPS) { 
+    if (frobSquared < EPS) { 
         return 1;
     }
     return 0;
