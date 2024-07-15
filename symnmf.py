@@ -10,8 +10,8 @@ def main():
     k = int(argv[1])
     goal = argv[2]
     path = argv[3]
-    points = np.genfromtxt(path, delimiter=',').tolist()
-    
+    points = readData(path)
+
     resMat = []
     # switch case for goal
     # note: match-case is not supported in nova version of python
@@ -33,6 +33,13 @@ def main():
         throwOfficialError()
     officialPrint(resMat)
 
+def readData(path):
+    with open(path, 'r') as file:
+        lines = file.readlines()
+
+    # Convert each line to a float and create a 2D array
+    points = [[float(val) for val in line.strip().split(',')] for line in lines]
+    return points
 
 def pysymnmf(n, k, w):
     m = np.mean(w)

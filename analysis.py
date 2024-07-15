@@ -10,19 +10,25 @@ import math
 def main():
     if len(sys.argv) != 3:
         throwOfficialError()
-    
+
+    np.random.seed(0)
     k = int(sys.argv[1])
     path = sys.argv[2]
 
     try:
-        points = np.genfromtxt(path, delimiter=',').tolist()
-        H = np.array(analSymnmf(points, len(points), k))
+        points = readData(path)
+        n = len(points)
+        H = np.array(analSymnmf(points, n, k))
         
 
         # label of a point = which cluster it belongs to.
         symnmf_clusters = H.argmax(axis=1)
         kmeans_centroids = analKmeans(points, k)
-        kmeans_clusters = [find_closest_centroid(point, kmeans_centroids) for point in points]
+        kmeans_clusters = [find_closest_centroid(points[i], kmeans_centroids) for i in range(n)]
+
+        # print(np.array(symnmf_clusters))
+        # print(np.array(kmeans_clusters))
+        # print(f"num of matches = {np.sum(np.array(symnmf_clusters) == np.array(kmeans_clusters))}, out of n = {n} points")
 
         symnmf_score = sk.silhouette_score(points, symnmf_clusters)
         kmeans_score = sk.silhouette_score(points, kmeans_clusters)
@@ -68,6 +74,15 @@ def analKmeans(points, k):
             break
     
     return centroids
+
+
+def readData(path):
+    with open(path, 'r') as file:
+        lines = file.readlines()
+
+    # Convert each line to a float and create a 2D array
+    points = [[float(val) for val in line.strip().split(',')] for line in lines]
+    return points
 
 
 def throwOfficialError():

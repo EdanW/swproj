@@ -1,11 +1,15 @@
-symnmf: symnmf.o symnmf.h
-	@echo "Building symnmf"
-	@gcc -o symnmf symnmf.o -lm
+CC = gcc
+CFLAGS = -ansi -Wall -Wextra -Werror -pedantic-errors
+LDFLAGS = -lm
+SRC = symnmf.c
+EXECUTABLE = symnmf
 
-symnmf.o: symnmf.c
-	@echo "Compiling symnmf.c"
-	@gcc -ansi -Wall -Wextra -Werror -pedantic-errors -c symnmf.c 
+all: $(EXECUTABLE)
+
+$(EXECUTABLE): $(SRC)
+	$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS)
 
 clean:
-	@echo "Cleaning up"
-	@rm -f *.o symnmf
+	rm -f $(EXECUTABLE)
+
+.PHONY: all clean run
