@@ -68,6 +68,7 @@ static PyObject* symnmf(PyObject *self, PyObject *args) {
     /* h is optimized, convert to py */
 
     pyres = convertCToPy(h, n, k); /* if it's null, either way we will free memory and return null */
+
     freeMemoryModule(h, n, w, n, h_prior, n, resRow, 1);
     
     return pyres;
@@ -148,6 +149,7 @@ int getNModule (PyObject *pypoints) {
 }
 
 double** convertPyToC (PyObject* pypoints, int n, int d){
+    /* Converts Python list of lists to C matrix */
     double **points;
     int i,j;
     double coordinate;
@@ -170,6 +172,7 @@ double** convertPyToC (PyObject* pypoints, int n, int d){
 }
 
 PyObject *convertCToPy(double** cMat, int n, int d) {
+    /* Converts C matrix to Python list of lists */
     PyObject* pyMat;
     PyObject* pyMat_row;
     PyObject* value;
@@ -213,6 +216,7 @@ PyObject *calcByGoal(int func, PyObject *args) {
     double** points;
     double** targetMat = NULL;
     PyObject *pypoints, *pyres;
+
     if(!PyArg_ParseTuple(args, "O", &pypoints)){
         return NULL;
     }
@@ -244,7 +248,7 @@ PyObject *calcByGoal(int func, PyObject *args) {
             break;
     }
 
-    pyres = convertCToPy(targetMat, n, n);
+    pyres = convertCToPy(targetMat, n, n); /* if it's null, either way we will free memory and return null */
 
     freeMemoryModule(points, n, targetMat, n, NULL, 0, NULL, 0);
     
@@ -284,13 +288,18 @@ double efficientCalcHHTHIJ(double** h, int i, int j, int n, int k, double** resR
     double sum = 0;
     int m, t;
 
-    for (m = 0 ; m < n ; m++) {
-        for (t = 0 ; t < k ; t++) { /* run over common dimension */
-            sum += h[i][t] * h[m][t]; /* inner product of transpose */
+    if (j == 0){
+        /* Otherwise we already calculated resRow in previous iterations */
+        for (m = 0 ; m < n ; m++) {
+            for (t = 0 ; t < k ; t++) { /* run over common dimension */
+                sum += h[i][t] * h[m][t]; /* inner product of transpose */
+            }
+            resRow[0][m] = sum;
+            sum = 0;
         }
-        resRow[0][m] = sum;
-        sum = 0;
     }
+    /* Now resRow is the i'th row of (h * h^t) */
+
     /* this is equivalent to (h * h^t)*h [i][j] */
     return innerProduct(resRow, h, 0, j, n);
 }
