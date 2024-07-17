@@ -37,7 +37,7 @@ def readData(path):
     with open(path, 'r') as file:
         lines = file.readlines()
 
-    # Convert each line to a float and create a 2D array
+    # Convert each line to floats and create a 2D array
     points = [[float(val) for val in line.strip().split(',')] for line in lines]
     return points
 

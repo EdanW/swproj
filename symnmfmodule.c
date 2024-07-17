@@ -326,5 +326,3 @@ void matrixCopy(double** src, double** tgt, int n, int k) {
         }
     }
 }
-
-

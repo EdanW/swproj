@@ -1,10 +1,8 @@
 import symnmf
 import sys
 import numpy as np
-import pandas as pd 
 import sklearn.metrics as sk
 import math
-
 
 
 def main():
@@ -25,10 +23,6 @@ def main():
         symnmf_clusters = H.argmax(axis=1)
         kmeans_centroids = analKmeans(points, k)
         kmeans_clusters = [find_closest_centroid(points[i], kmeans_centroids) for i in range(n)]
-
-        # print(np.array(symnmf_clusters))
-        # print(np.array(kmeans_clusters))
-        # print(f"num of matches = {np.sum(np.array(symnmf_clusters) == np.array(kmeans_clusters))}, out of n = {n} points")
 
         symnmf_score = sk.silhouette_score(points, symnmf_clusters)
         kmeans_score = sk.silhouette_score(points, kmeans_clusters)
